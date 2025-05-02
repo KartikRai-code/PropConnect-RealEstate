@@ -20,7 +20,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Create axios instance with default config
 const api = axios.create({
   baseURL: 'http://localhost:5001/api',
-  withCredentials: true,
+});
+
+// Add a request interceptor to add the token to all requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -30,6 +38,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check if user is already authenticated
     const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await api.get('/auth/me');
         if (response.data.user) {
@@ -37,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        localStorage.removeItem('token');
         setUser(null);
       } finally {
         setLoading(false);
@@ -48,55 +63,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Attempting login for email:', email);
+      
       const response = await api.post('/auth/login', {
         email,
         password,
       });
 
+      console.log('Login response received:', {
+        status: response.status,
+        hasToken: !!response.data.token,
+        hasUser: !!response.data.user
+      });
+
       if (response.data.token) {
-        // Get user info after successful login
-        const userResponse = await api.get('/auth/me');
-        if (userResponse.data.user) {
-          setUser(userResponse.data.user);
-        }
+        // Store the token
+        localStorage.setItem('token', response.data.token);
+        console.log('Token stored in localStorage');
+
+        // Set user data
+        setUser(response.data.user);
+        console.log('User data set in context:', response.data.user);
       } else {
+        console.error('No token received in login response');
         throw new Error('No token received');
       }
     } catch (error: any) {
-      console.error('Login failed:', error);
+      console.error('Login error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   };
 
-  const logout = async () => {
-    try {
-      await api.post('/auth/logout');
-      setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
-    }
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
   const register = async (name: string, email: string, password: string) => {
     try {
+      console.log('Sending registration request...');
       const response = await api.post('/auth/register', {
         name,
         email,
         password,
       });
 
+      console.log('Registration response:', response.data);
+
       if (response.data.token) {
-        // Get user info after successful registration
-        const userResponse = await api.get('/auth/me');
-        if (userResponse.data.user) {
-          setUser(userResponse.data.user);
-        }
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
+        console.log('User registered and logged in:', response.data.user);
       } else {
+        console.error('No token in response:', response.data);
         throw new Error('No token received');
       }
     } catch (error: any) {
-      console.error('Registration failed:', error);
+      console.error('Registration failed:', error.response?.data || error.message);
       throw error;
     }
   };
