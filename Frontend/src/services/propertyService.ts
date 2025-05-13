@@ -1,42 +1,88 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/properties';
+const API_URL = 'http://localhost:5001/api';
+const BUY_API_URL = `${API_URL}/properties/buy`;
+const RENT_API_URL = `${API_URL}/rental-properties`;
 
 export interface Property {
   _id: string;
   title: string;
-  type: string;
-  address: string;
-  location: string;
+  description: string;
   price: number;
+  location: string;
   bedrooms: number;
   bathrooms: number;
-  squareFeet: number;
-  image: string;
-  description: string;
-  keyFeatures: string[];
+  area: number;
+  propertyType: string;
+  images: string[];
   amenities: string[];
-  builder?: string;
+  featured?: boolean;
+  yearBuilt?: number;
+  parkingSpaces?: number;
+  propertyTax?: number;
+  constructionStatus?: 'ready' | 'underConstruction' | 'preConstruction';
   possession?: string;
-  rera?: string;
-  floorPlan?: string;
-  images?: string[];
-  featured: boolean;
+  builder?: string;
+  reraId?: string;
+  floorPlan?: string[];
+  agentId: string;
   createdAt?: string;
   updatedAt?: string;
+  // Rental specific properties
+  availableFrom?: Date;
+  minimumLease?: number;
+  deposit?: number;
+  petsAllowed?: boolean;
+  furnished?: boolean;
+  utilities?: string[];
 }
 
 export const getProperties = async (): Promise<Property[]> => {
-  const response = await axios.get(API_URL);
+  const response = await axios.get(BUY_API_URL);
   return response.data;
+};
+
+export const getRentalProperties = async (): Promise<Property[]> => {
+  try {
+    const response = await axios.get(RENT_API_URL);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching rental properties:', error);
+    throw error;
+  }
+};
+
+export const getNewlyAddedRentalProperties = async (): Promise<Property[]> => {
+  try {
+    const response = await axios.get(`${RENT_API_URL}/newly-added`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching newly added properties:', error);
+    throw error;
+  }
 };
 
 export const getPropertyById = async (id: string): Promise<Property> => {
-  const response = await axios.get(`${API_URL}/${id}`);
-  return response.data;
+  try {
+    const response = await axios.get(`${BUY_API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching property:', error);
+    throw error;
+  }
+};
+
+export const getRentalPropertyById = async (id: string): Promise<Property> => {
+  try {
+    const response = await axios.get(`${RENT_API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching rental property:', error);
+    throw error;
+  }
 };
 
 export const getFeaturedProperties = async (): Promise<Property[]> => {
-  const response = await axios.get(`${API_URL}?featured=true`);
+  const response = await axios.get(`${BUY_API_URL}?featured=true`);
   return response.data;
-}; 
+};
