@@ -4,10 +4,11 @@ import axios from 'axios';
 
 interface TourBookingFormProps {
   propertyId: string;
+  propertyType: 'rental' | 'buy';
   onClose: () => void;
 }
 
-const TourBookingForm: React.FC<TourBookingFormProps> = ({ propertyId, onClose }) => {
+const TourBookingForm: React.FC<TourBookingFormProps> = ({ propertyId, propertyType, onClose }) => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -36,6 +37,7 @@ const TourBookingForm: React.FC<TourBookingFormProps> = ({ propertyId, onClose }
       const tourDateTime = new Date(`${selectedDate}T${selectedTime}`);
       const requestData = {
         propertyId,
+        propertyType,
         tourDate: tourDateTime.toISOString()
       };
       console.log('Sending tour booking request:', requestData);
@@ -54,7 +56,8 @@ const TourBookingForm: React.FC<TourBookingFormProps> = ({ propertyId, onClose }
           state: { 
             booking: response.data,
             date: selectedDate,
-            time: selectedTime
+            time: selectedTime,
+            propertyType
           }
         });
       }
