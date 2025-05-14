@@ -1,7 +1,7 @@
 import express, { Router, Request, Response } from 'express';
 import Property from '../models/property';
 import mongoose from 'mongoose';
-import protect, { AuthRequest } from '../middleware/authMiddleware';
+import { authenticateToken as protect, AuthRequest } from '../middleware/auth';
 import { 
   getAllProperties, 
   getPropertyById, 
@@ -10,7 +10,6 @@ import {
   deleteProperty,
   getFeaturedProperties 
 } from '../controllers/propertyController';
-import { authenticateToken } from '../middleware/auth';
 
 const router: Router = express.Router();
 
