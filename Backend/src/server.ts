@@ -22,14 +22,29 @@ const port = process.env.PORT || 5001;
 
 // CORS configuration
 const corsOptions = {
-  origin: ['https://propconnect.vercel.app', 'https://propconnect-realestate-2.onrender.com'],
+  origin: '*', // Allow all origins for now to debug
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Access-Control-Allow-Origin'],
 };
 
 // Middleware
 app.use(cors(corsOptions));
+
+// Additional CORS handling middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
