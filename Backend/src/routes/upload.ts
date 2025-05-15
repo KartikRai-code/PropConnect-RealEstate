@@ -45,7 +45,7 @@ router.post('/', upload.single('image'), (req: Request, res: Response) => {
     }
 
     // Get the base URL from environment variable or use default
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5001';
+    const baseUrl = process.env.API_BASE_URL || 'https://propconnect-realestate-2.onrender.com';
     const imageUrl = `${baseUrl}/uploads/${file.filename}`;
     
     res.json({ 
