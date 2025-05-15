@@ -6,6 +6,8 @@
     "@googlemaps/js-api-loader": "^1.16.8",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.8.4",
+    "bcrypt": "^6.0.0",
+    "build": "^0.1.4",
     "cra-template-typescript": "1.3.0",
     "framer-motion": "^12.10.5",
     "react": "^18.2.0",
