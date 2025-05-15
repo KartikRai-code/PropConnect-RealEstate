@@ -49,7 +49,7 @@ const Sell: React.FC = () => {
              <svg className="inline-block h-64 w-auto text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                  <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2zm2-2h14v10h-4v-2a2 2 0 00-2-2h-2a2 2 0 00-2 2v2H5V5z m3 8h2v-2H8v2zm4 0h2v-2h-2v2z"/>
              </svg>
-             <p className="mt-4 text-sm text-gray-500">Illustration placeholder</p>
+             
           </div>
         </div>
       </div>

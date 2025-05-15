@@ -86,3 +86,16 @@ export const getFeaturedProperties = async (): Promise<Property[]> => {
   const response = await axios.get(`${BUY_API_URL}?featured=true`);
   return response.data;
 };
+
+export const submitAgentApplication = async (formData: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  experience: number;
+  licenseNumber: string;
+  about?: string;
+}) => {
+  const response = await axios.post(`${API_URL}/becomeagent`, formData);
+  return response.data;
+};

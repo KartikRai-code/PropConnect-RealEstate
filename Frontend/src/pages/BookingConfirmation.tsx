@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Property } from '../services/propertyService';
 
 interface BookingDetails {
@@ -10,6 +10,7 @@ interface BookingDetails {
   tourDate: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt: string;
+  propertyType?: 'rental' | 'buy';
 }
 
 const BookingConfirmation: React.FC = () => {
@@ -19,7 +20,7 @@ const BookingConfirmation: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { booking, date, time } = location.state || {};
+  const { booking, date, time, propertyType } = location.state || {};
 
   useEffect(() => {
     if (!booking) {
@@ -29,7 +30,25 @@ const BookingConfirmation: React.FC = () => {
 
     const fetchPropertyDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/properties/${booking.propertyId}`);
+        let response;
+        const propertyTypeToUse = propertyType || booking.propertyType;
+        console.log('Fetching property details for type:', propertyTypeToUse);
+
+        if (propertyTypeToUse === 'rental') {
+          response = await axios.get(`http://localhost:5001/api/rental-properties/${booking.propertyId}`);
+        } else {
+          try {
+            response = await axios.get(`http://localhost:5001/api/properties/buy/${booking.propertyId}`);
+          } catch (err) {
+            if (err instanceof AxiosError && err.response?.status === 404) {
+              // Fallback to general properties endpoint
+              response = await axios.get(`http://localhost:5001/api/properties/${booking.propertyId}`);
+            } else {
+              throw err;
+            }
+          }
+        }
+        
         setProperty(response.data);
       } catch (err) {
         console.error('Error fetching property details:', err);
@@ -40,7 +59,7 @@ const BookingConfirmation: React.FC = () => {
     };
 
     fetchPropertyDetails();
-  }, [booking, navigate]);
+  }, [booking, navigate, propertyType]);
 
   if (loading) {
     return (
@@ -110,7 +129,7 @@ const BookingConfirmation: React.FC = () => {
                 
                 <div>
                   <p className="text-sm text-gray-500">Location</p>
-                  <p className="text-lg text-gray-900">{property.address}</p>
+                  <p className="text-lg text-gray-900">{property.location}</p>
                 </div>
 
                 <div>

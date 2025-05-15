@@ -1,292 +1,299 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-
-interface Property {
-  id: number;
-  title: string;
-  price: number;
-  address: string;
-  bedrooms: number;
-  bathrooms: number;
-  squareFeet: number;
-  description: string;
-  images: string[];
-  features: string[];
-}
-
-interface BookingFormData {
-  date: string;
-  time: string;
-  name: string;
-  email: string;
-  phone: string;
-}
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { getPropertyById, getRentalPropertyById, Property } from '../services/propertyService';
+import TourBookingForm from '../components/TourBookingForm';
+import { FaShare, FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaBuilding, FaCalendarAlt, FaInfoCircle } from 'react-icons/fa';
 
 const PropertyDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [bookingData, setBookingData] = useState<BookingFormData>({
-    date: '',
-    time: '',
-    name: '',
-    email: '',
-    phone: '',
-  });
+  const isRentalProperty = location.state?.isRental || location.pathname.includes('/rental') || document.referrer.includes('/rent');
 
-  // Sample property data - in a real app, this would come from an API
-  const property: Property = {
-    id: 1,
-    title: 'Modern Downtown Apartment',
-    price: 450000,
-    address: '123 Main St, New York, NY',
-    bedrooms: 2,
-    bathrooms: 2,
-    squareFeet: 1200,
-    description: 'This stunning modern apartment features an open floor plan, high ceilings, and floor-to-ceiling windows offering breathtaking city views. The gourmet kitchen is equipped with stainless steel appliances and custom cabinetry. The master suite includes a walk-in closet and spa-like bathroom. Building amenities include a fitness center, rooftop terrace, and 24/7 concierge service.',
-    images: [
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    ],
-    features: [
-      'Open floor plan',
-      'High ceilings',
-      'Floor-to-ceiling windows',
-      'Gourmet kitchen',
-      'Stainless steel appliances',
-      'Walk-in closet',
-      'Spa-like bathroom',
-      'Fitness center',
-      'Rooftop terrace',
-      '24/7 concierge',
-    ],
-  };
+  useEffect(() => {
+    const fetchProperty = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = isRentalProperty 
+          ? await getRentalPropertyById(id)
+          : await getPropertyById(id);
+        setProperty(data);
+      } catch (err) {
+        console.error('Error fetching property:', err);
+        setError('Failed to fetch property details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProperty();
+  }, [id, location, isRentalProperty]);
 
-  const handleBookingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // Here you would typically make an API call to save the booking
-      console.log('Booking submitted:', bookingData);
-      alert('Tour booking request submitted successfully! An agent will contact you shortly.');
-      setShowBookingForm(false);
-    } catch (error) {
-      console.error('Error submitting booking:', error);
-      alert('Failed to submit booking. Please try again.');
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: property?.title,
+        text: `Check out this property: ${property?.title}`,
+        url: window.location.href,
+      });
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
     }
   };
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % property.images.length);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
-  };
+  if (error || !property) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error || 'Property not found'}
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="mb-8 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="mb-6 text-blue-600 hover:text-blue-800 flex items-center"
         >
-          Back to Listings
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
         </button>
 
-        <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-2 lg:gap-x-8">
-          <div>
-            <div className="relative h-[500px] mb-8 rounded-lg overflow-hidden">
-              <img
-                src={property.images[currentImageIndex]}
-                alt={property.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={prevImage}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full"
-              >
-                ←
-              </button>
-              <button
-                onClick={nextImage}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full"
-              >
-                →
-              </button>
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                {property.images.map((_, index) => (
+        {/* Image Gallery */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+          <div className="relative">
+            <img
+              src={property.images?.[currentImageIndex] || ''}
+              alt={property.title}
+              className="w-full h-[500px] object-cover"
+            />
+            {property.images && property.images.length > 1 && (
+              <>
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
                   <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`mx-1 w-2 h-2 rounded-full ${
-                      index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                    }`}
-                  />
+                    onClick={() => setCurrentImageIndex((prev) => (prev - 1 + property.images!.length) % property.images!.length)}
+                    className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <span className="bg-white px-3 py-1 rounded-full text-sm">
+                    {currentImageIndex + 1} / {property.images?.length}
+                  </span>
+                  <button
+                    onClick={() => setCurrentImageIndex((prev) => (prev + 1) % property.images!.length)}
+                    className="bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+                {/* Thumbnail Navigation */}
+                <div className="absolute bottom-20 left-0 right-0 px-4">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {property.images.map((image, index) => (
+                      <img
+                        key={index}
+                        src={image}
+                        alt={`${property.title} - ${index + 1}`}
+                        className={`w-20 h-20 object-cover rounded cursor-pointer ${
+                          currentImageIndex === index ? 'ring-2 ring-blue-500' : ''
+                        }`}
+                        onClick={() => setCurrentImageIndex(index)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Property Details Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title and Price */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{property.title}</h1>
+                  <p className="text-gray-600 mt-2">
+                    <FaMapMarkerAlt className="inline mr-2" />
+                    {property.location}
+                  </p>
+                </div>
+                <button
+                  onClick={handleShare}
+                  className="text-gray-600 hover:text-blue-600"
+                >
+                  <FaShare className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="mt-4">
+                <p className="text-2xl font-bold text-blue-600">
+                  ₹{property.price?.toLocaleString('en-IN') || 'Price on Request'}
+                </p>
+                <p className="text-gray-500">
+                  {property.area?.toLocaleString('en-IN') || '0'} sq ft
+                </p>
+              </div>
+            </div>
+
+            {/* Key Features */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">Key Features</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="flex items-center">
+                  <FaBed className="text-blue-600 mr-2" />
+                  <span>{property.bedrooms || 0} Bedrooms</span>
+                </div>
+                <div className="flex items-center">
+                  <FaBath className="text-blue-600 mr-2" />
+                  <span>{property.bathrooms || 0} Bathrooms</span>
+                </div>
+                <div className="flex items-center">
+                  <FaRulerCombined className="text-blue-600 mr-2" />
+                  <span>{property.area?.toLocaleString('en-IN') || '0'} sq ft</span>
+                </div>
+                <div className="flex items-center">
+                  <FaBuilding className="text-blue-600 mr-2" />
+                  <span>{property.propertyType || 'Not Specified'}</span>
+                </div>
+                {property.builder && (
+                  <div className="flex items-center">
+                    <FaInfoCircle className="text-blue-600 mr-2" />
+                    <span>{property.builder}</span>
+                  </div>
+                )}
+                {property.possession && (
+                  <div className="flex items-center">
+                    <FaCalendarAlt className="text-blue-600 mr-2" />
+                    <span>Possession: {property.possession}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">Description</h2>
+              <p className="text-gray-700 whitespace-pre-line">{property.description}</p>
+            </div>
+
+            {/* Amenities */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">Amenities</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {property.amenities?.map((amenity, index) => (
+                  <div key={index} className="flex items-center">
+                    <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {amenity}
+                  </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">{property.title}</h1>
-            <p className="mt-2 text-2xl font-medium text-gray-900">
-              ${property.price.toLocaleString()}
-            </p>
-            <p className="mt-2 text-sm text-gray-500">{property.address}</p>
-
-            <div className="mt-6">
-              <h2 className="text-lg font-medium text-gray-900">Description</h2>
-              <p className="mt-2 text-gray-500">{property.description}</p>
-            </div>
-
-            <div className="mt-6">
-              <h2 className="text-lg font-medium text-gray-900">Features</h2>
-              <ul className="mt-2 grid grid-cols-2 gap-2">
-                {property.features.map((feature, index) => (
-                  <li key={index} className="flex items-center text-gray-500">
-                    <svg
-                      className="h-5 w-5 text-green-500 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="mt-6">
-              <h2 className="text-lg font-medium text-gray-900">Property Details</h2>
-              <dl className="mt-2 grid grid-cols-2 gap-4">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Bedrooms</dt>
-                  <dd className="text-sm text-gray-900">{property.bedrooms}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Bathrooms</dt>
-                  <dd className="text-sm text-gray-900">{property.bathrooms}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Square Feet</dt>
-                  <dd className="text-sm text-gray-900">{property.squareFeet.toLocaleString()}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <div className="mt-8">
-              {!showBookingForm ? (
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Tour Booking */}
+            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
+              <h2 className="text-xl font-semibold mb-4">Schedule a Tour</h2>
+              <button
+                onClick={() => setShowBookingForm(true)}
+                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Book a Tour
+              </button>
+              {property.floorPlan && property.floorPlan.length > 0 && (
                 <button
-                  onClick={() => setShowBookingForm(true)}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={() => {
+                    const url = property.floorPlan?.[0];
+                    if (url) window.open(url, '_blank');
+                  }}
+                  className="w-full mt-4 border border-blue-600 text-blue-600 py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors"
                 >
-                  Book a Tour
+                  View Floor Plan
                 </button>
-              ) : (
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-xl font-semibold mb-4">Schedule a Tour</h3>
-                  <form onSubmit={handleBookingSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Select Date
-                      </label>
-                      <input
-                        type="date"
-                        value={bookingData.date}
-                        onChange={(e) => setBookingData(prev => ({ ...prev, date: e.target.value }))}
-                        min={new Date().toISOString().split('T')[0]}
-                        className="w-full p-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Select Time
-                      </label>
-                      <select
-                        value={bookingData.time}
-                        onChange={(e) => setBookingData(prev => ({ ...prev, time: e.target.value }))}
-                        className="w-full p-2 border rounded-md"
-                        required
-                      >
-                        <option value="">Select a time</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="12:00">12:00 PM</option>
-                        <option value="13:00">1:00 PM</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="15:00">3:00 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Your Name
-                      </label>
-                      <input
-                        type="text"
-                        value={bookingData.name}
-                        onChange={(e) => setBookingData(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full p-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={bookingData.email}
-                        onChange={(e) => setBookingData(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full p-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={bookingData.phone}
-                        onChange={(e) => setBookingData(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full p-2 border rounded-md"
-                        required
-                      />
-                    </div>
-                    <div className="flex space-x-4">
-                      <button
-                        type="submit"
-                        className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
-                      >
-                        Submit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowBookingForm(false)}
-                        className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </div>
               )}
+            </div>
+
+            {/* Property Details */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold mb-4">Property Details</h2>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Property Type</span>
+                  <span className="font-medium">{property.propertyType || 'Not Specified'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Area</span>
+                  <span className="font-medium">{property.area?.toLocaleString('en-IN') || '0'} sq ft</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Bedrooms</span>
+                  <span className="font-medium">{property.bedrooms || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Bathrooms</span>
+                  <span className="font-medium">{property.bathrooms || 0}</span>
+                </div>
+                {property.builder && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Builder</span>
+                    <span className="font-medium">{property.builder}</span>
+                  </div>
+                )}
+                {property.possession && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Possession</span>
+                    <span className="font-medium">{property.possession}</span>
+                  </div>
+                )}
+                {property.reraId && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">RERA ID</span>
+                    <span className="font-medium">{property.reraId}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Tour Booking Form Modal */}
+      {showBookingForm && property && (
+        <TourBookingForm
+          propertyId={property._id}
+          propertyType={isRentalProperty ? 'rental' : 'buy'}
+          onClose={() => setShowBookingForm(false)}
+        />
+      )}
     </div>
   );
 };

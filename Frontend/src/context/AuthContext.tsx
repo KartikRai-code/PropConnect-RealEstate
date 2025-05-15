@@ -79,6 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.data.token) {
         // Store the token
         localStorage.setItem('token', response.data.token);
+        // Store the user info
+        localStorage.setItem('userInfo', JSON.stringify(response.data.user));
         console.log('Token stored in localStorage');
 
         // Set user data
@@ -116,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userInfo', JSON.stringify(response.data.user));
         setUser(response.data.user);
         console.log('User registered and logged in:', response.data.user);
       } else {
