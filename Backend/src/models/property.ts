@@ -14,6 +14,7 @@ export interface IProperty extends Document {
   featured: boolean;
   status: 'forSale' | 'forRent' | 'both';
   agentId: mongoose.Types.ObjectId;
+  postedBy: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,7 +32,8 @@ const propertySchema = new Schema<IProperty>({
   amenities: [{ type: String }],
   featured: { type: Boolean, default: false },
   status: { type: String, enum: ['forSale', 'forRent', 'both'], required: true },
-  agentId: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  agentId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
 }, {
   timestamps: true
 });
