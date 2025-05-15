@@ -35,14 +35,14 @@ const BookingConfirmation: React.FC = () => {
         console.log('Fetching property details for type:', propertyTypeToUse);
 
         if (propertyTypeToUse === 'rental') {
-          response = await axios.get(`http://localhost:5001/api/rental-properties/${booking.propertyId}`);
+          response = await axios.get(`https://propconnect-realestate-2.onrender.com/api/rental-properties/${booking.propertyId}`);
         } else {
           try {
-            response = await axios.get(`http://localhost:5001/api/properties/buy/${booking.propertyId}`);
+            response = await axios.get(`https://propconnect-realestate-2.onrender.com/api/properties/buy/${booking.propertyId}`);
           } catch (err) {
             if (err instanceof AxiosError && err.response?.status === 404) {
               // Fallback to general properties endpoint
-              response = await axios.get(`http://localhost:5001/api/properties/${booking.propertyId}`);
+              response = await axios.get(`https://propconnect-realestate-2.onrender.com/api/properties/${booking.propertyId}`);
             } else {
               throw err;
             }

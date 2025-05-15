@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Make sure this URL matches your backend server address and port
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'https://propconnect-realestate-2.onrender.com/api';
 
 export interface AgentApplication {
   firstName: string;

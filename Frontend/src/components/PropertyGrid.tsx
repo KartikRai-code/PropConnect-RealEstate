@@ -38,7 +38,7 @@ const PropertyGrid: React.FC = () => {
         if (typeFilter) params.append('type', typeFilter);
         
         const queryString = params.toString();
-        const url = `http://localhost:5001/api/properties/buy${queryString ? `?${queryString}` : ''}`;
+        const url = `https://propconnect-realestate-2.onrender.com/api/properties/buy${queryString ? `?${queryString}` : ''}`;
         
         const response = await axios.get(url);
         setProperties(response.data);

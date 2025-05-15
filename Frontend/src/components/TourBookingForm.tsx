@@ -42,7 +42,7 @@ const TourBookingForm: React.FC<TourBookingFormProps> = ({ propertyId, propertyT
       };
       console.log('Sending tour booking request:', requestData);
       
-      const response = await axios.post('http://localhost:5001/api/tour-bookings', requestData, {
+      const response = await axios.post('https://propconnect-realestate-2.onrender.com/api/tour-bookings', requestData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

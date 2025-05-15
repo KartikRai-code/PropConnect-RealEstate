@@ -50,7 +50,7 @@ const PropertyDetails: React.FC = () => {
     const fetchProperty = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5001/api/properties/buy/${id}`);
+        const response = await axios.get(`https://propconnect-realestate-2.onrender.com/api/properties/buy/${id}`);
         setProperty(response.data);
       } catch (err) {
         setError('Failed to fetch property details');

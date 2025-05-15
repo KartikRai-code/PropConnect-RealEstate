@@ -4,7 +4,7 @@ import axios from 'axios'; // Import axios
 import Select from 'react-select';
 
 // Retrieve ENV vars once at the top level
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001'; // Add backend URL to .env or use default
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://propconnect-realestate-2.onrender.com'; // Add backend URL to .env or use default
 
 const ListProperty: React.FC = () => {
   const [formData, setFormData] = useState({

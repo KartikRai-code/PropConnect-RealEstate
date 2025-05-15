@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api',
+  baseURL: 'https://propconnect-realestate-2.onrender.com/api',
 });
 
 // Add a request interceptor to add the token to all requests

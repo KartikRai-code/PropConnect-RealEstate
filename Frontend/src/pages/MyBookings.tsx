@@ -36,7 +36,7 @@ const MyBookings: React.FC = () => {
         }
 
         // Fetch bookings
-        const bookingsResponse = await axios.get('http://localhost:5001/api/tour-bookings/user', {
+        const bookingsResponse = await axios.get('https://propconnect-realestate-2.onrender.com/api/tour-bookings/user', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -49,8 +49,8 @@ const MyBookings: React.FC = () => {
           bookingsData.map(async (booking: Booking) => {
             try {
               const endpoint = booking.propertyType === 'rental'
-                ? `http://localhost:5001/api/rental-properties/${booking.propertyId}`
-                : `http://localhost:5001/api/properties/buy/${booking.propertyId}`;
+                ? `https://propconnect-realestate-2.onrender.com/api/rental-properties/${booking.propertyId}`
+                : `https://propconnect-realestate-2.onrender.com/api/properties/buy/${booking.propertyId}`;
 
               const propertyResponse = await axios.get(endpoint);
               return {

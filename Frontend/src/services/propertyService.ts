@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'https://propconnect-realestate-2.onrender.com/api';
 const BUY_API_URL = `${API_URL}/properties/buy`;
 const RENT_API_URL = `${API_URL}/rental-properties`;
 
